@@ -1,0 +1,3 @@
+*.o
+attempt-vulk-c
+shaders/*.spv
