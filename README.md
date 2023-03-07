@@ -19,6 +19,10 @@ Build:
 
 `make` or `make debug` for debug version
 
+Build shaders:
+
+./build_shaders.sh
+
 Required additional include files:
 
 tinyobj_loader_c.h https://github.com/syoyo/tinyobjloader-c (MIT license)
