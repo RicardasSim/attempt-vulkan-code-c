@@ -21,7 +21,7 @@ Build:
 
 Build shaders:
 
-./build_shaders.sh
+`./build_shaders.sh`
 
 Required additional include files:
 
