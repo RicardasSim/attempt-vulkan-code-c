@@ -1653,14 +1653,13 @@ bool createColorResources()
                                       VK_IMAGE_ASPECT_COLOR_BIT,
                                       1 );
 
-    if ( colorImageView )
+    if ( !colorImageView )
     {
-        return true;
+        printf("Error: createColorResources, createImageView.\n");
+        return false;
     }
 
-    printf("Error: createColorResources, createImageView.\n");
-
-    return false;
+    return true;
 }
 
 /*
