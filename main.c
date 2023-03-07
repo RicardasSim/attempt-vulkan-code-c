@@ -1655,9 +1655,10 @@ bool createColorResources()
 
     if ( colorImageView )
     {
-        printf("Error: createColorResources, createImageView.\n");
         return true;
     }
+
+    printf("Error: createColorResources, createImageView.\n");
 
     return false;
 }
