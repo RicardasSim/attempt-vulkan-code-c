@@ -1,4 +1,5 @@
-# attempt-vulkan-code-c-assimp-priv
+# attempt-vulkan-code-c
+## branch load-obj-with-assimp
 attempt to use vulkan tutorial code in C, load .obj file with assimp
 
 Platform:
