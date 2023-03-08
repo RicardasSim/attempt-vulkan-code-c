@@ -12,8 +12,9 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 
-#define TINYOBJ_LOADER_C_IMPLEMENTATION
-#include "tinyobj_loader_c.h"
+#include <assimp/cimport.h>
+#include <assimp/scene.h>
+#include <assimp/postprocess.h>
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -150,11 +151,6 @@ typedef struct s_read_buffer {
     char *p_buffer;
     size_t size;
 } S_read_buffer;
-
-typedef struct s_ctx {
-    char *p_buffer[2];
-    unsigned int num;
-} S_ctx;
 
 /*
 ================================================
@@ -2362,72 +2358,6 @@ void copyBufferToImage( VkBuffer buffer,
 
 /*
 ================================================
- FUNCTION NAME: fileReaderCallback
-================================================
-*/
-
-static void fileReaderCallback( void *context,
-                                const char *file_name,
-                                const int mtl_flag,
-                                const char *obj_file_name,
-                                char **content_buffer,
-                                size_t *size_of_content )
-{
-    printf( "fileReaderCallback().\n" );
-    printf( "mtl flag %d\n", mtl_flag );
-    printf( "file name %s\n", file_name );
-    printf( "obj file name %s\n\n", obj_file_name );
-
-    FILE *fp;
-
-    fp = fopen( file_name, "rb" );
-
-    if ( !fp )
-    {
-        printf( "Error: failed to open file \"%s\" !\n", file_name );
-        *content_buffer = NULL;
-        *size_of_content = 0;
-        return;
-    }
-
-    fseek( fp, 0L, SEEK_END );
-
-    size_t file_size = ftell(fp);
-
-    char *buffer = malloc( file_size );
-
-    if ( !buffer )
-    {
-        printf( "Error: cannot allocate memory (6).\n" );
-        *content_buffer = NULL;
-        *size_of_content = 0;
-        return;
-    }
-
-    fseek( fp, 0, SEEK_SET );
-
-    size_t num = fread( buffer, sizeof *buffer, file_size, fp );
-
-    fclose(fp);
-
-    if ( num != file_size )
-    {
-        printf("Error: an error occurred while reading the file.\n");
-        free( buffer );
-        *content_buffer = NULL;
-        *size_of_content = 0;
-        return;
-    }
-
-    *content_buffer = buffer;
-    *size_of_content = file_size;
-
-    ((S_ctx*) context)->p_buffer[((S_ctx*) context)->num] = buffer;
-    ((S_ctx*) context)->num++;
-}
-
-/*
-================================================
  FUNCTION NAME: fltAEqual
 ================================================
 */
@@ -2445,183 +2375,120 @@ bool fltAEqual( float a, float b, float epsilon )
 
 bool loadModel()
 {
-    tinyobj_attrib_t attrib;
-    tinyobj_shape_t *shapes;
-    size_t num_shapes;
-    tinyobj_material_t *materials;
-    size_t num_materials;
-    void *context;
-    unsigned int flags = TINYOBJ_FLAG_TRIANGULATE;
+    const struct aiScene* scene;
 
-    S_ctx sctx = {0};
+    int flags_assimp = aiProcess_Triangulate |
+                       aiProcess_JoinIdenticalVertices |
+					   aiProcess_FlipUVs ;
 
-    context = &sctx;
+    scene = aiImportFile( model_path, flags_assimp );
 
-    int retv = tinyobj_parse_obj( &attrib,
-                                  &shapes,
-                                  &num_shapes,
-                                  &materials,
-                                  &num_materials,
-                                  model_path,
-                                  fileReaderCallback,
-                                  context,
-                                  flags );
-
-    if ( retv != TINYOBJ_SUCCESS )
+    if (!scene)
     {
-        printf("Error: tinyobj parse error.\n");
+        printf("Error: %s\n", aiGetErrorString());
         return false;
     }
 
-    printf( "Number of vertices: %u\n", attrib.num_vertices );
-    printf( "Number of normals: %u\n", attrib.num_normals );
-    printf( "Number of texcoords: %u\n", attrib.num_texcoords );
-    printf( "Number of vertex indices: %u\n", attrib.num_faces );
-    printf( "Number of faces: %u\n", attrib.num_face_num_verts );
-    printf( "Number of materials: %ld\n", num_materials );
-    printf( "Number of shapes: %ld\n\n", num_shapes );
-
-    //TODO: use shape
-/*
-    for ( size_t i = 0; i < num_shapes; ++i )
+    if ( scene->mNumMeshes < 1 )
     {
-        printf( "Shape [%ld]:\n", i );
-        printf( "name: %s\n", shapes[i].name );
-
-        unsigned int offset = shapes[i].face_offset;
-
-        unsigned int length = shapes[i].length;
-
-        printf( "face offset: %u\n", offset );
-        printf( "length: %u\n\n", length );
-
-        // ...
+        printf( "Error: there is no any mesh to import.\n");
+        aiReleaseImport(scene);
+        return false;
     }
-*/
 
-    unsigned int offset = 0;
+    printf( "Info: num of meshes in .obj file: %d\n", scene->mNumMeshes );
 
-    unsigned int number_of_faces = attrib.num_face_num_verts;
+    /*
+    loop every mesh example
 
-    for( unsigned int i = offset; i < offset + number_of_faces; ++i )
+    for ( uint32_t i = 0 ; i < scene->mNumMeshes ; ++i )
     {
-        // triangulated, every face has 3 vertices
+        ...
+    }
+    */
 
-        for ( unsigned int j = 0; j < 3; ++j )
+    //loading first mesh only
+
+    struct aiMesh *mesh = scene->mMeshes[0];
+
+    printf("Info: number of vertices: %d\n", mesh->mNumVertices );
+    printf("Info: number of faces: %d\n", mesh->mNumFaces );
+    printf("Info: the number of components for a given UV channel: %d\n", mesh->mNumUVComponents[0] );
+
+    vertices = malloc( mesh->mNumVertices * sizeof *vertices );
+
+    if ( !vertices )
+    {
+        printf( "Error: cannot allocate memory (12).\n");
+        aiReleaseImport(scene);
+        return false;
+    }
+
+    vertices_size = mesh->mNumVertices;
+
+    for ( uint32_t i = 0; i < mesh->mNumVertices; ++i )
+    {
+        Vertex vertex = {0};
+
+        float x = mesh->mVertices[i].x;
+        float y = mesh->mVertices[i].y;
+        float z = mesh->mVertices[i].z;
+
+        vertex.pos[0] = x;
+        vertex.pos[1] = y;
+        vertex.pos[2] = z;
+
+        vertex.color[0] = 1.0f;
+        vertex.color[1] = 1.0f;
+        vertex.color[2] = 1.0f;
+
+        struct aiVector3D uv = mesh->mTextureCoords[0][i];
+
+        float u = uv.x;
+        float v = uv.y;
+
+        vertex.texCoord[0] = u;
+        vertex.texCoord[1] = v;
+
+        vertices[i].pos[0] = vertex.pos[0];
+        vertices[i].pos[1] = vertex.pos[1];
+        vertices[i].pos[2] = vertex.pos[2];
+        vertices[i].color[0] = vertex.color[0];
+        vertices[i].color[1] = vertex.color[1];
+        vertices[i].color[2] = vertex.color[2];
+        vertices[i].texCoord[0] = vertex.texCoord[0];
+        vertices[i].texCoord[1] = vertex.texCoord[1];
+
+    }
+
+    // triangulated, every face should have 3 vertices
+    
+    indices = malloc ( mesh->mNumFaces * 3 * sizeof *indices );
+
+    if ( !indices )
+    {
+        printf( "Error: cannot allocate memory (13).\n");
+        free(vertices);
+        vertices_size = 0;
+        aiReleaseImport(scene);
+        return false;
+    }
+
+    indices_size = mesh->mNumFaces * 3;
+
+    for ( uint32_t i = 0; i < mesh->mNumFaces; ++i )
+    {
+        struct aiFace *face = &mesh->mFaces[i];
+
+        for ( uint32_t j = 0; j < face->mNumIndices; ++j )
         {
-
-            Vertex vertex = {0};
-            
-            tinyobj_vertex_index_t vert_idx = attrib.faces[ i * 3 + j ];
-
-            int indx_v = vert_idx.v_idx;
-
-            // every vertice float x, y, z
-            // vertex array offset indx_v * 3
-
-            float x = attrib.vertices[ indx_v * 3 ];
-            float y = attrib.vertices[ indx_v * 3 + 1 ];
-            float z = attrib.vertices[ indx_v * 3 + 2 ];
-
-            vertex.pos[0] = x;
-            vertex.pos[1] = y;
-            vertex.pos[2] = z;
-
-            vertex.color[0] = 1.0f;
-            vertex.color[1] = 1.0f;
-            vertex.color[2] = 1.0f;
-
-            int indx_vt = vert_idx.vt_idx;
-
-            float u = attrib.texcoords[ indx_vt * 2 ];
-            float v = 1.0f - attrib.texcoords[ indx_vt * 2 + 1 ];
-
-            vertex.texCoord[0] = u;
-            vertex.texCoord[1] = v;
-
-            bool flag_sutampa = false;
-
-            uint32_t vertices_indeksas = 0;
-
-            for ( size_t bi = 0; bi < vertices_size; ++bi )
-            {
-                if ( fltAEqual ( vertices[bi].pos[0], vertex.pos[0], FLT_EPSILON ) &&
-                     fltAEqual ( vertices[bi].pos[1], vertex.pos[1], FLT_EPSILON ) &&
-                     fltAEqual ( vertices[bi].pos[2], vertex.pos[2], FLT_EPSILON ) &&
-                     fltAEqual ( vertices[bi].texCoord[0], vertex.texCoord[0], FLT_EPSILON ) &&
-                     fltAEqual ( vertices[bi].texCoord[1], vertex.texCoord[1], FLT_EPSILON )
-                   )
-                {
-                    flag_sutampa = true;
-                    vertices_indeksas = bi;
-                    break;
-                }
-            }       
-
-
-            if( !flag_sutampa )
-            {
-                vertices_indeksas = vertices_size;
-
-                Vertex *p_tmp_vertices = NULL;
-
-                vertices_size++;
-
-                p_tmp_vertices = realloc( vertices, vertices_size * sizeof *vertices );
-
-                if( !p_tmp_vertices )
-                {
-                    printf("Error: memory reallocation error (1).\n");
-                    free(vertices);
-                    vertices = NULL;
-                    vertices_size = 0;
-                }
-                else
-                {
-                    vertices = p_tmp_vertices;
-                
-                    vertices[vertices_indeksas].pos[0] = vertex.pos[0];
-                    vertices[vertices_indeksas].pos[1] = vertex.pos[1];
-                    vertices[vertices_indeksas].pos[2] = vertex.pos[2];
-                    vertices[vertices_indeksas].texCoord[0] = vertex.texCoord[0];
-                    vertices[vertices_indeksas].texCoord[1] = vertex.texCoord[1];
-                }
-            }
-
-            uint32_t *p_tmp_indices = NULL;
-
-            indices_size = i * 3 + j + 1;
-
-            p_tmp_indices = realloc( indices, indices_size * sizeof *indices );
-                
-            if( !p_tmp_indices )
-            {
-                printf("Error: memory reallocation error (2).\n");
-                free(indices);
-                indices = NULL;
-                indices_size = 0;
-            }
-            else
-            {
-                indices = p_tmp_indices;
-                indices[ i * 3 + j ] = vertices_indeksas;
-            }
-
+            indices[ i * 3 + j ] = face->mIndices[j];
         }
     }
 
-    tinyobj_attrib_free( &attrib );
-    tinyobj_shapes_free( shapes, num_shapes );
-    tinyobj_materials_free( materials, num_materials );
+    aiReleaseImport(scene);
 
-    for ( uint32_t i = 0; i < sctx.num; ++i )
-    {
-        if ( sctx.p_buffer[i] )
-        {
-            printf("free buffer (%u).\n", i );
-            free( sctx.p_buffer[i] );
-        }
-    }
+    printf( "Debug: vertices_size: %ld\n", vertices_size );
 
     return true;
 }

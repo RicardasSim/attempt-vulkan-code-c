@@ -1,5 +1,5 @@
-# attempt-vulkan-code-c
-attempt to use vulkan tutorial code in C
+# attempt-vulkan-code-c-assimp-priv
+attempt to use vulkan tutorial code in C, load .obj file with assimp
 
 Platform:
 
@@ -22,10 +22,6 @@ Build:
 Build shaders:
 
 `./build_shaders.sh`
-
-Required additional include files:
-
-tinyobj_loader_c.h https://github.com/syoyo/tinyobjloader-c (MIT license)
 
 LICENSE:
 

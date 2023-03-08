@@ -12,7 +12,7 @@ debug: CFLAGS += $(DEBUG_FLAGS)
 debug: $(TARGET_PROGRAM)
 
 $(TARGET_PROGRAM): $(OBJ)
-	$(CC) -o $(TARGET_PROGRAM) $(OBJ) -lm -lglfw -lvulkan
+	$(CC) -o $(TARGET_PROGRAM) $(OBJ) -lm -lglfw -lvulkan -lassimp
 
 main.o: main.c
 	$(CC) $(CFLAGS) -I./include -c main.c -o main.o
