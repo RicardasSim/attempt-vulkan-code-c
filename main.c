@@ -2583,6 +2583,9 @@ bool loadModel()
                     vertices[vertices_indeksas].pos[0] = vertex.pos[0];
                     vertices[vertices_indeksas].pos[1] = vertex.pos[1];
                     vertices[vertices_indeksas].pos[2] = vertex.pos[2];
+                    vertices[vertices_indeksas].color[0] = vertex.color[0];
+                    vertices[vertices_indeksas].color[1] = vertex.color[1];
+                    vertices[vertices_indeksas].color[2] = vertex.color[2];
                     vertices[vertices_indeksas].texCoord[0] = vertex.texCoord[0];
                     vertices[vertices_indeksas].texCoord[1] = vertex.texCoord[1];
                 }
