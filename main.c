@@ -2488,8 +2488,6 @@ bool loadModel()
 
     aiReleaseImport(scene);
 
-    printf( "Debug: vertices_size: %ld\n", vertices_size );
-
     return true;
 }
 
