@@ -2097,12 +2097,13 @@ bool createTextureImageView()
                                         VK_IMAGE_ASPECT_COLOR_BIT,
                                         mipmapLevels );
 
-    if ( textureImageView )
+    if ( !textureImageView )
     {
-        return true;
+        printf("Error: failed to create texture image view.\n");
+        return false;
     }
 
-    return false;
+    return true;
 }
 
 /*
