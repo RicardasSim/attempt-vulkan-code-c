@@ -2179,7 +2179,7 @@ VkImageView createImageView( VkImage image,
                             NULL,
                             &imageView ) != VK_SUCCESS )
     {
-        printf("Error: failed to create texture image view!\n");
+        printf("Error: failed to create image view!\n");
         return NULL;
     }
 
