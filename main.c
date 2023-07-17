@@ -598,8 +598,15 @@ void cleanupVulkan()
 
     for ( int i = 0; i < max_frames_in_flight; i++ )
     {
-        vkDestroyBuffer( logicalDevice, uniformBuffers[i], NULL );
-        vkFreeMemory( logicalDevice, uniformBuffersMemory[i], NULL );
+        if ( uniformBuffers )
+        {
+            vkDestroyBuffer( logicalDevice, uniformBuffers[i], NULL );
+        }
+
+        if ( uniformBuffersMemory )
+        {
+            vkFreeMemory( logicalDevice, uniformBuffersMemory[i], NULL );
+        }
     }
 
     //TODO:
@@ -632,9 +639,20 @@ void cleanupVulkan()
 
     for ( int i = 0; i < max_frames_in_flight; i++ )
     {
-        vkDestroySemaphore( logicalDevice, renderFinishedSemaphores[i], NULL );
-        vkDestroySemaphore( logicalDevice, imageAvailableSemaphores[i], NULL );
-        vkDestroyFence( logicalDevice, inFlightFences[i], NULL );
+        if( renderFinishedSemaphores )
+        {
+            vkDestroySemaphore( logicalDevice, renderFinishedSemaphores[i], NULL );
+        }
+
+        if( imageAvailableSemaphores )
+        {
+            vkDestroySemaphore( logicalDevice, imageAvailableSemaphores[i], NULL );
+        }
+
+        if( inFlightFences )
+        {
+            vkDestroyFence( logicalDevice, inFlightFences[i], NULL );
+        }
     }
 
     free( imageAvailableSemaphores );
@@ -1240,9 +1258,9 @@ bool createRenderPass()
     dependency.srcSubpass = VK_SUBPASS_EXTERNAL;
     dependency.dstSubpass = 0;
     dependency.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT |
-                              VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
+                              VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT;
 
-    dependency.srcAccessMask = 0;
+    dependency.srcAccessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
 
     dependency.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT |
                               VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
