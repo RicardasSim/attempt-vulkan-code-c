@@ -2148,7 +2148,7 @@ bool createTextureSampler()
     samplerInfo.compareOp = VK_COMPARE_OP_ALWAYS;
     samplerInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
     samplerInfo.minLod = 0.0f;
-    samplerInfo.maxLod = (float) mipmapLevels;
+    samplerInfo.maxLod = VK_LOD_CLAMP_NONE;
     samplerInfo.mipLodBias = 0.0f;
 
     if ( vkCreateSampler( logicalDevice,
