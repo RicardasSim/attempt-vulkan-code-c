@@ -204,8 +204,9 @@ bool createIndexBuffer();
 bool createInstance();
 bool createLogicalDevice();
 bool createRenderPass();
-VkShaderModule createShaderModule( const char *code,
-                                   size_t code_size );
+bool createShaderModule( const char *code,
+                         size_t code_size,
+                         VkShaderModule *shaderModule );
 bool createSyncObjects();
 bool createSurface();
 bool createSwapChain();
@@ -1371,13 +1372,30 @@ bool createGraphicsPipeline()
     char *fragShaderCode = s_ret.p_buffer;
     size_t fragShaderCode_size = s_ret.size;
 
-    VkShaderModule vertShaderModule = createShaderModule( vertShaderCode,
-                                                          vertShaderCode_size );
+    VkShaderModule vertShaderModule;
+    
+    if ( !createShaderModule( vertShaderCode,
+                              vertShaderCode_size,
+                              &vertShaderModule ))
+    {
+        printf("Error: failed to create vertex shader module.\n");
+        free( vertShaderCode );
+        free( fragShaderCode );
+        return false;
+    }
 
-    VkShaderModule fragShaderModule = createShaderModule( fragShaderCode,
-                                                          fragShaderCode_size );
+    VkShaderModule fragShaderModule;
+    
+    if ( !createShaderModule( fragShaderCode,
+                              fragShaderCode_size,
+                              &fragShaderModule ))
+    {
+        printf("Error: failed to create fragment shader module.\n");
+        free( vertShaderCode );
+        free( fragShaderCode );
+        return false;
+    }
 
-    //TODO:
     free( vertShaderCode );
     free( fragShaderCode );
 
@@ -3315,8 +3333,9 @@ bool drawFrame()
 ================================================
 */
 
-VkShaderModule createShaderModule( const char *code,
-                                   size_t code_size )
+bool createShaderModule( const char *code,
+                         size_t code_size,
+                         VkShaderModule *shaderModule )
 {
     VkShaderModuleCreateInfo createInfo = {0};
 
@@ -3324,15 +3343,13 @@ VkShaderModule createShaderModule( const char *code,
     createInfo.codeSize = code_size;
     createInfo.pCode = (const uint32_t*) code;
 
-    VkShaderModule shaderModule;
-
-    if ( vkCreateShaderModule(logicalDevice, &createInfo, NULL, &shaderModule) != VK_SUCCESS)
+    if ( vkCreateShaderModule(logicalDevice, &createInfo, NULL, shaderModule) != VK_SUCCESS)
     {
-        //TODO: exit on error
         printf("Error: failed to create shader module!\n");
+        return false;
     }
 
-    return shaderModule;
+    return true;
 }
 
 /*
