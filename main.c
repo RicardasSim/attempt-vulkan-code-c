@@ -1345,6 +1345,41 @@ bool createDescriptorSetLayout()
 
 /*
 ================================================
+ FUNCTION NAME: loadShader
+================================================
+*/
+
+bool loadShader( const char *shader_file,
+                 VkShaderModule *shader_module )
+{
+
+    S_read_buffer s_ret;
+
+    if ( !readFile( &s_ret, shader_file ) )
+    {
+        printf("Error: cannot read shader file: %s\n", shader_file );
+        return false;
+    }
+
+    char *shader_code = s_ret.p_buffer;
+    size_t shader_code_size = s_ret.size;
+
+    if ( !createShaderModule( shader_code,
+                              shader_code_size,
+                              shader_module ))
+    {
+        printf("Error: failed to create shader module.\n");
+        free( shader_code );
+        return false;
+    }
+
+    free( shader_code );
+
+    return true;
+}
+
+/*
+================================================
  FUNCTION NAME: createGraphicsPipeline
 ================================================
 */
@@ -1352,52 +1387,21 @@ bool createDescriptorSetLayout()
 bool createGraphicsPipeline()
 {
 
-    S_read_buffer s_ret;
-
-    if ( !readFile( &s_ret, "shaders/vert.spv" ) )
-    {
-        printf("Error: cannot read vert.spv.\n");
-        return false;
-    }
-
-    char *vertShaderCode = s_ret.p_buffer;
-    size_t vertShaderCode_size = s_ret.size;
-
-    if ( !readFile( &s_ret, "shaders/frag.spv" ) )
-    {
-        printf("Error: cannot read frag.spv.\n");
-        return false;
-    }
-
-    char *fragShaderCode = s_ret.p_buffer;
-    size_t fragShaderCode_size = s_ret.size;
-
     VkShaderModule vertShaderModule;
-    
-    if ( !createShaderModule( vertShaderCode,
-                              vertShaderCode_size,
-                              &vertShaderModule ))
+
+    if ( !loadShader( "shaders/vert.spv", &vertShaderModule ) )
     {
-        printf("Error: failed to create vertex shader module.\n");
-        free( vertShaderCode );
-        free( fragShaderCode );
+        printf("Error: cannot load vert.spv\n");
         return false;
     }
 
     VkShaderModule fragShaderModule;
-    
-    if ( !createShaderModule( fragShaderCode,
-                              fragShaderCode_size,
-                              &fragShaderModule ))
+
+    if ( !loadShader( "shaders/frag.spv", &fragShaderModule ) )
     {
-        printf("Error: failed to create fragment shader module.\n");
-        free( vertShaderCode );
-        free( fragShaderCode );
+        printf("Error: cannot load frag.spv\n");
         return false;
     }
-
-    free( vertShaderCode );
-    free( fragShaderCode );
 
     VkPipelineShaderStageCreateInfo vertShaderStageInfo = {0};
 
