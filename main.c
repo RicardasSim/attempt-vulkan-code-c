@@ -1396,6 +1396,7 @@ bool createGraphicsPipeline()
     if ( !loadShader( "shaders/vert.spv", &vertShaderModule ) )
     {
         printf("Error: cannot load vert.spv\n");
+        return false;
     }
 
     VkShaderModule fragShaderModule;
@@ -1403,6 +1404,7 @@ bool createGraphicsPipeline()
     if ( !loadShader( "shaders/frag.spv", &fragShaderModule ) )
     {
         printf("Error: cannot load frag.spv\n");
+        return false;
     }
 
     VkPipelineShaderStageCreateInfo vertShaderStageInfo = {0};
