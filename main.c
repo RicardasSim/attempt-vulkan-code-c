@@ -558,6 +558,10 @@ void cleanupSwapChain()
                               NULL );
     }
 
+    free( swapChainFramebuffers );
+    swapChainFramebuffers = NULL;
+    swapchain_framebuffers_count = 0;
+
     for ( uint32_t i = 0; i < swapchain_imageviews_count; ++i )
     {
         vkDestroyImageView( logicalDevice,
