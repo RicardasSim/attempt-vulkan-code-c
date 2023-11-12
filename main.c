@@ -1400,6 +1400,7 @@ bool createGraphicsPipeline()
     if ( !loadShader( "shaders/frag.spv", &fragShaderModule ) )
     {
         printf("Error: cannot load frag.spv\n");
+        vkDestroyShaderModule(logicalDevice, vertShaderModule, NULL);
         return false;
     }
 
