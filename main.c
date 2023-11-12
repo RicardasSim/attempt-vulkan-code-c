@@ -1368,7 +1368,7 @@ bool loadShader( const char *shader_file,
 
     free( shader_code );
 
-    if ( shader_module == VK_NULL_HANDLE )
+    if ( *shader_module == VK_NULL_HANDLE )
     {
         printf("Error: failed to create shader module.\n");
         return false;
