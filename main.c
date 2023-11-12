@@ -208,9 +208,8 @@ bool createIndexBuffer();
 bool createInstance();
 bool createLogicalDevice();
 bool createRenderPass();
-bool createShaderModule( const char *code,
-                         size_t code_size,
-                         VkShaderModule *shaderModule );
+VkShaderModule createShaderModule( const char *code,
+                                   size_t code_size );
 bool createSyncObjects();
 bool createSurface();
 bool createSwapChain();
@@ -1368,16 +1367,16 @@ bool loadShader( const char *shader_file,
     char *shader_code = s_ret.p_buffer;
     size_t shader_code_size = s_ret.size;
 
-    if ( !createShaderModule( shader_code,
-                              shader_code_size,
-                              shader_module ))
-    {
-        printf("Error: failed to create shader module.\n");
-        free( shader_code );
-        return false;
-    }
+    *shader_module = createShaderModule( shader_code,
+                                         shader_code_size );
 
     free( shader_code );
+
+    if ( shader_module == VK_NULL_HANDLE )
+    {
+        printf("Error: failed to create shader module.\n");
+        return false;
+    }
 
     return true;
 }
@@ -3476,9 +3475,8 @@ bool drawFrame()
 ================================================
 */
 
-bool createShaderModule( const char *code,
-                         size_t code_size,
-                         VkShaderModule *shaderModule )
+VkShaderModule createShaderModule( const char *code,
+                                   size_t code_size )
 {
     VkShaderModuleCreateInfo createInfo = {0};
 
@@ -3486,13 +3484,15 @@ bool createShaderModule( const char *code,
     createInfo.codeSize = code_size;
     createInfo.pCode = (const uint32_t*) code;
 
-    if ( vkCreateShaderModule(logicalDevice, &createInfo, NULL, shaderModule) != VK_SUCCESS)
+    VkShaderModule shaderModule;
+
+    if ( vkCreateShaderModule(logicalDevice, &createInfo, NULL, &shaderModule) != VK_SUCCESS)
     {
         printf("Error: failed to create shader module!\n");
-        return false;
+        return VK_NULL_HANDLE;
     }
 
-    return true;
+    return shaderModule;
 }
 
 /*
