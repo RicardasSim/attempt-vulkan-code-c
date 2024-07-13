@@ -9,7 +9,7 @@ Resources used:
 
 vulkan tutorial https://github.com/Overv/VulkanTutorial code directory licensed as CC0 1.0 Universal
 
-model and textures, https://www.3dmodelscc0.com/model/generator-shack/  
+model and textures, (a website is no longer available)  
 Author: 3DModelsCC0  
 This work is licensed under CC0 1.0
 
