@@ -3745,9 +3745,7 @@ QueueFamilyIndices findQueueFamilies(VkPhysicalDevice device)
 
     vkGetPhysicalDeviceQueueFamilyProperties( device, &queueFamilyCount, queueFamilies );
 
-    int i = 0;
-
-    for ( uint32_t j = 0; j < queueFamilyCount; ++j )
+    for ( uint32_t i = 0; i < queueFamilyCount; ++i )
     {
         if ( queueFamilies[i].queueFlags & VK_QUEUE_GRAPHICS_BIT )
         {
@@ -3769,8 +3767,6 @@ QueueFamilyIndices findQueueFamilies(VkPhysicalDevice device)
         {
             break;
         }
-
-        i++;
     }
 
     return qfIndices;
