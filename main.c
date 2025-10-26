@@ -3694,7 +3694,7 @@ bool getRequiredExtensions( S_Extensions *pS )
 
         char **pTmp = (char**) realloc( pS->data, sizeof (char*) * ( pS->size + 1 ) );
 
-        if( !**pTmp )
+        if( !pTmp )
         {
             //TODO: description
             printf("Error:  getRequiredExtensions (3).\n");
